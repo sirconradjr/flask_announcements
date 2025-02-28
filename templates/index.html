@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Announcements</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function fetchAnnouncements() {
+            fetch("/get_announcements")
+            .then(response => response.json())
+            .then(data => {
+                const announcementList = document.getElementById("announcement-list");
+                announcementList.innerHTML = "";
+                data.forEach(a => {
+                    const item = `<li>
+                        <h2>${a.title}</h2>
+                        <p>${a.content}</p>
+                        <small>Posted on ${a.created_at}</small>
+                    </li>`;
+                    announcementList.innerHTML += item;
+                });
+            });
+        }
+
+        window.onload = fetchAnnouncements;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Latest Announcements</h1>
+        <ul id="announcement-list"></ul>
+    </div>
+</body>
+</html>

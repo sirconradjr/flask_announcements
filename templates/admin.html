@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Announcements</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function fetchAnnouncements() {
+            fetch("/get_announcements")
+            .then(response => response.json())
+            .then(data => {
+                const announcementList = document.getElementById("announcement-list");
+                announcementList.innerHTML = "";
+                data.forEach(a => {
+                    const item = `<li>
+                        <h2>${a.title}</h2>
+                        <p>${a.content}</p>
+                        <button onclick="editAnnouncement(${a.id}, '${a.title}', '${a.content}')">Edit</button>
+                        <button onclick="deleteAnnouncement(${a.id})">Delete</button>
+                    </li>`;
+                    announcementList.innerHTML += item;
+                });
+            });
+        }
+
+        function addAnnouncement() {
+            const title = document.getElementById("title").value;
+            const content = document.getElementById("content").value;
+            if (!title || !content) {
+                alert("Please enter a title and content.");
+                return;
+            }
+
+            fetch("/add_announcement", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title, content })
+            }).then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                document.getElementById("title").value = "";
+                document.getElementById("content").value = "";
+                fetchAnnouncements();
+            });
+        }
+
+        function editAnnouncement(id, title, content) {
+            const newTitle = prompt("Edit Title:", title);
+            const newContent = prompt("Edit Content:", content);
+            if (newTitle && newContent) {
+                fetch(`/edit/${id}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ title: newTitle, content: newContent })
+                }).then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    fetchAnnouncements();
+                });
+            }
+        }
+
+        function deleteAnnouncement(id) {
+            if (confirm("Are you sure you want to delete this announcement?")) {
+                fetch(`/delete/${id}`, { method: "DELETE" })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    fetchAnnouncements();
+                });
+            }
+        }
+
+        window.onload = fetchAnnouncements;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Manage Announcements</h1>
+        <input type="text" id="title" placeholder="Title">
+        <textarea id="content" placeholder="Announcement content"></textarea>
+        <button onclick="addAnnouncement()">Post Announcement</button>
+
+        <h2>Existing Announcements</h2>
+        <ul id="announcement-list"></ul>
+    </div>
+</body>
+</html>
